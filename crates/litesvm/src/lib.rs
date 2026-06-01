@@ -409,7 +409,7 @@ use {
 pub mod error;
 pub mod types;
 
-mod accounts_db;
+pub mod accounts_db;
 mod callback;
 #[cfg(feature = "sbpf-debugger")]
 pub mod debugger;
@@ -441,7 +441,7 @@ pub const MAINNET_DEFAULT_SLOT: u64 = {
 
 #[derive(Clone)]
 pub struct LiteSVM {
-    accounts: AccountsDb,
+    pub accounts: AccountsDb,
     airdrop_kp: [u8; 64],
     feature_set: FeatureSet,
     reserved_account_keys: ReservedAccountKeys,
@@ -563,8 +563,7 @@ impl LiteSVM {
         self
     }
 
-    #[cfg_attr(feature = "nodejs-internal", qualifiers(pub))]
-    fn set_sigverify(&mut self, sigverify: bool) {
+    pub fn set_sigverify(&mut self, sigverify: bool) {
         self.sigverify = sigverify;
     }
 
