@@ -85,11 +85,11 @@ impl AccountsDb {
 
     /// We should only use this when we know we're not touching any executable or sysvar accounts,
     /// or have already handled such cases.
-    pub(crate) fn add_account_no_checks(&mut self, pubkey: Address, account: AccountSharedData) {
+    pub fn add_account_no_checks(&mut self, pubkey: Address, account: AccountSharedData) {
         self.inner.insert(pubkey, account);
     }
 
-    pub(crate) fn add_account(
+    pub fn add_account(
         &mut self,
         pubkey: Address,
         account: AccountSharedData,

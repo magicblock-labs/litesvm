@@ -34,7 +34,7 @@ qualifier_attr = "0.2.2"
 serde = "1.0.203"
 sha2 = "0.10.9"
 smallvec = "1.13"
-solana-account = "3.2.0"
+solana-account = { git = "https://github.com/magicblock-labs/magicblock-svm.git", rev = "5bd1d56" }
 solana-address = "2.6"
 solana-address-lookup-table-interface = "3.0"
 solana-bpf-loader-program = "3.1.0"
@@ -110,3 +110,6 @@ codegen-units = 1
 
 [workspace.lints.clippy]
 result_large_err = "allow"
+
+[patch.crates-io]
+solana-account = { git = "https://github.com/magicblock-labs/magicblock-svm.git", rev = "5bd1d56" }
