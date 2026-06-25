@@ -547,6 +547,15 @@ impl LiteSVM {
         self
     }
 
+    fn set_fee_structure(&mut self, fee_structure: FeeStructure) {
+        self.fee_structure = fee_structure;
+    }
+
+    pub fn with_fee_structure(mut self, fee_structure: FeeStructure) -> Self {
+        self.set_fee_structure(fee_structure);
+        self
+    }
+
     #[cfg_attr(feature = "nodejs-internal", qualifiers(pub))]
     fn set_sysvars(&mut self) {
         self.set_sysvar(&Clock::default());
