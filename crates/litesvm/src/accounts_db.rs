@@ -390,7 +390,9 @@ impl AccountsDb {
     ) -> solana_transaction_error::TransactionResult<()> {
         match self.inner.get_mut(address) {
             Some(account) => {
-                let min_balance = match get_system_account_kind(account) {
+                let min_balance = match get_system_account_kind(
+                    &crate::account_compat::fork_to_stock(account),
+                ) {
                     Some(SystemAccountKind::Nonce) => self
                         .sysvar_cache
                         .get_rent()

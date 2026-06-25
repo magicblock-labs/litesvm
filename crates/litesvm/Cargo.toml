@@ -1,5 +1,5 @@
 [package]
-name = "litesvm"
+name = "magicblock-litesvm"
 description = "A fast and lightweight Solana VM simulator for testing solana programs"
 license.workspace = true
 version.workspace = true
@@ -7,6 +7,9 @@ edition.workspace = true
 rust-version.workspace = true
 repository.workspace = true
 readme = "../../README.md"
+
+[lib]
+name = "litesvm"
 
 [package.metadata.docs.rs]
 all-features = true
@@ -40,6 +43,7 @@ log.workspace = true
 qualifier_attr = { workspace = true, optional = true }
 serde.workspace = true
 solana-account.workspace = true
+solana-account-stock = { package = "solana-account", version = "3" }
 solana-address.workspace = true
 solana-address-lookup-table-interface = { workspace = true, features = [
     "bincode",
