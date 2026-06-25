@@ -12,14 +12,7 @@ fn new_initializes_accounts_for_enabled_features() {
     let account = svm
         .get_account(&feature_id)
         .expect("active feature account should exist");
-    let feature = feature_gate::from_account(&solana_account_stock::Account {
-        lamports: account.lamports,
-        data: account.data.clone(),
-        owner: account.owner,
-        executable: account.executable,
-        rent_epoch: account.rent_epoch,
-    })
-    .expect("feature account should deserialize");
+    let feature = feature_gate::from_account(&account).expect("feature account should deserialize");
 
     assert_eq!(account.owner, solana_sdk_ids::feature::id());
     assert_eq!(

@@ -85,11 +85,11 @@ impl AccountsDb {
 
     /// We should only use this when we know we're not touching any executable or sysvar accounts,
     /// or have already handled such cases.
-    pub fn add_account_no_checks(&mut self, pubkey: Address, account: AccountSharedData) {
+    pub(crate) fn add_account_no_checks(&mut self, pubkey: Address, account: AccountSharedData) {
         self.inner.insert(pubkey, account);
     }
 
-    pub fn add_account(
+    pub(crate) fn add_account(
         &mut self,
         pubkey: Address,
         account: AccountSharedData,
@@ -104,7 +104,7 @@ impl AccountsDb {
         } else {
             self.maybe_handle_sysvar_account(pubkey, &account)?;
         }
-        if account.lamports() == 0 && !account.ephemeral() {
+        if account.lamports() == 0 {
             self.inner.remove(&pubkey);
         } else {
             self.add_account_no_checks(pubkey, account);
@@ -255,10 +255,7 @@ impl AccountsDb {
             x.1.owner() == &bpf_loader_upgradeable::id()
                 && x.1.data().first().is_some_and(|byte| *byte == 3)
         });
-        for (address, mut acc) in accounts {
-            if let Some(existing) = self.inner.get(&address) {
-                crate::account_compat::preserve_fork_flags(existing, &mut acc);
-            }
+        for (address, acc) in accounts {
             self.add_account(address, acc)?;
         }
         Ok(())
@@ -393,9 +390,7 @@ impl AccountsDb {
     ) -> solana_transaction_error::TransactionResult<()> {
         match self.inner.get_mut(address) {
             Some(account) => {
-                let min_balance = match get_system_account_kind(
-                    &crate::account_compat::fork_to_stock(account),
-                ) {
+                let min_balance = match get_system_account_kind(account) {
                     Some(SystemAccountKind::Nonce) => self
                         .sysvar_cache
                         .get_rent()
