@@ -1,7 +1,7 @@
 use {
     agave_feature_set::FeatureSet,
     litesvm::types::{FailedTransactionMetadata, TransactionMetadata, TransactionResult},
-    solana_account::AccountSharedData,
+    solana_account_stock::AccountSharedData,
     solana_address::Address,
     solana_compute_budget::compute_budget::ComputeBudget,
     solana_fee_structure::{FeeBin, FeeStructure},

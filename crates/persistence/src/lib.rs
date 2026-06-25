@@ -28,7 +28,7 @@ fn extract_snapshot_v2(svm: &LiteSVM) -> LiteSvmSnapshotV2 {
             .accounts_db()
             .inner
             .iter()
-            .map(|(k, v)| AccountEntryWire::from((*k, v.clone())))
+            .map(|(k, v)| AccountEntryWire::from((*k, litesvm::account_compat::fork_to_stock(v))))
             .collect(),
         airdrop_kp: *svm.airdrop_keypair_bytes(),
         feature_set: FeatureSetSnapshot::from_feature_set(svm.get_feature_set_ref()),
@@ -90,7 +90,7 @@ fn restore_from_snapshot(snapshot: LiteSvmSnapshotV3) -> Result<LiteSVM, Persist
         .map_err(PersistenceError::InvalidEpochStakes)?;
 
     for (address, account) in state.accounts.into_iter().map(Into::into) {
-        svm.set_account_no_checks(address, account);
+        svm.set_account_no_checks(address, litesvm::account_compat::stock_to_fork(&account));
     }
 
     svm.restore_transaction_history(
