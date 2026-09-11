@@ -547,6 +547,7 @@ impl LiteSVM {
         self
     }
 
+    /// Sets the fee structure.
     pub fn with_fee_structure(mut self, fee_structure: FeeStructure) -> Self {
         self.set_fee_structure(fee_structure);
         self
