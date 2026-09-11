@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use {
     crate::error::{InvalidSysvarDataError, LiteSVMError},
     log::error,
-    solana_account::{AccountSharedData, ReadableAccount, WritableAccount},
+    solana_account::{AccountMode, AccountSharedData, ReadableAccount, WritableAccount},
     solana_address::Address,
     solana_address_lookup_table_interface::{error::AddressLookupError, state::AddressLookupTable},
     solana_clock::Clock,
@@ -135,7 +135,7 @@ impl AccountsDb {
         } else {
             self.maybe_handle_sysvar_account(pubkey, &account)?;
         }
-        if account.lamports() == 0 && !account.ephemeral() {
+        if account.lamports() == 0 && account.mode() != AccountMode::Ephemeral {
             self.inner.remove(&pubkey);
         } else {
             self.add_account_no_checks(pubkey, account);
@@ -284,7 +284,7 @@ impl AccountsDb {
         });
         for (address, mut acc) in accounts {
             if let Some(existing) = self.inner.get(&address) {
-                crate::account_compat::preserve_fork_flags(existing, &mut acc);
+                crate::account_compat::preserve_mode(existing, &mut acc);
             }
             self.add_account(address, acc)?;
         }
