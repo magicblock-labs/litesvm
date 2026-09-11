@@ -10,7 +10,8 @@
 
 use {
     solana_account::{
-        Account as ForkAccount, AccountSharedData as ForkAccountSharedData, ReadableAccount,
+        Account as ForkAccount, AccountBuilder, AccountSharedData as ForkAccountSharedData,
+        OwnedAccount, ReadableAccount,
     },
     solana_account_stock::{
         Account as StockAccount, AccountSharedData as StockAccountSharedData,
@@ -44,6 +45,11 @@ pub fn stock_to_fork(account: &StockAccountSharedData) -> ForkAccountSharedData 
 /// Copies MagicBlock fork flags from `pre` onto `post` when the stock runtime
 /// round-trip dropped them.
 pub(crate) fn preserve_mode(pre: &ForkAccountSharedData, post: &mut ForkAccountSharedData) {
-    let pre_mode = pre.mode();
-    post.set_lifecycle(pre_mode, post.slot());
+    let new_post: OwnedAccount = AccountBuilder::default()
+        .lamports(pre.lamports())
+        .data(pre.data().to_vec())
+        .owner(*pre.owner())
+        .mode(pre.mode())
+        .build();
+    *post = new_post.into();
 }
