@@ -6,7 +6,7 @@ members = ["crates/*"]
 version = "0.16.0"
 edition = "2021"
 license = "Apache-2.0"
-repository = "https://github.com/LiteSVM/litesvm"
+repository = "https://github.com/magicblock-labs/litesvm"
 rust-version = "1.89.0"
 
 [workspace.dependencies]
