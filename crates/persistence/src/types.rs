@@ -1,6 +1,7 @@
 use {
     agave_feature_set::FeatureSet,
     litesvm::types::{FailedTransactionMetadata, TransactionMetadata, TransactionResult},
+    solana_account::AccountMode,
     solana_account_stock::AccountSharedData,
     solana_address::Address,
     solana_compute_budget::compute_budget::ComputeBudget,
@@ -402,6 +403,60 @@ impl From<LiteSvmSnapshotV2> for LiteSvmSnapshotV3 {
         Self {
             state,
             epoch_vote_stakes: Vec::new(),
+        }
+    }
+}
+
+#[derive(SchemaWrite, SchemaRead)]
+pub(crate) struct AccountEntryWireV4 {
+    pub address: Address,
+    pub account: AccountSharedData,
+    pub mode: AccountMode,
+}
+
+impl From<AccountEntryWire> for AccountEntryWireV4 {
+    fn from(entry: AccountEntryWire) -> Self {
+        Self {
+            address: entry.address,
+            account: entry.account,
+            mode: AccountMode::default(),
+        }
+    }
+}
+
+#[derive(SchemaWrite, SchemaRead)]
+pub(crate) struct LiteSvmSnapshotV4 {
+    pub accounts: Vec<AccountEntryWireV4>,
+    pub airdrop_kp: [u8; 64],
+    pub feature_set: FeatureSetSnapshot,
+    pub latest_blockhash: Hash,
+    pub history: Vec<(Signature, TxResult)>,
+    pub history_capacity: u64,
+    #[wincode(with = "Option<ComputeBudgetWire>")]
+    pub compute_budget: Option<ComputeBudget>,
+    pub sigverify: bool,
+    pub blockhash_check: bool,
+    #[wincode(with = "FeeStructureWire")]
+    pub fee_structure: FeeStructure,
+    pub log_bytes_limit: Option<u64>,
+    pub epoch_vote_stakes: Vec<(Address, u64)>,
+}
+
+impl From<LiteSvmSnapshotV3> for LiteSvmSnapshotV4 {
+    fn from(value: LiteSvmSnapshotV3) -> Self {
+        Self {
+            accounts: value.state.accounts.into_iter().map(Into::into).collect(),
+            airdrop_kp: value.state.airdrop_kp,
+            feature_set: value.state.feature_set,
+            latest_blockhash: value.state.latest_blockhash,
+            history: value.state.history,
+            history_capacity: value.state.history_capacity,
+            compute_budget: value.state.compute_budget,
+            sigverify: value.state.sigverify,
+            blockhash_check: value.state.blockhash_check,
+            fee_structure: value.state.fee_structure,
+            log_bytes_limit: value.state.log_bytes_limit,
+            epoch_vote_stakes: value.epoch_vote_stakes,
         }
     }
 }

@@ -228,7 +228,7 @@ fn load_nonexistent_file() {
 
 #[test]
 fn load_corrupted_data() {
-    let result = from_bytes(&[3, 0, 0, 0, 0xff, 0xff]); // current version + garbage
+    let result = from_bytes(&[4, 0, 0, 0, 0xff, 0xff]); // current version + garbage
     assert!(matches!(result, Err(PersistenceError::Read(_))));
 }
 
@@ -356,6 +356,47 @@ fn account_with_data_round_trip() {
     assert_eq!(account.data, data);
     assert_eq!(account.owner, owner);
     assert_eq!(account.lamports, 1_000_000);
+}
+
+#[test]
+fn fork_account_modes_round_trip() {
+    use solana_account::{AccountBuilder, AccountMode, AccountSharedData, ReadableAccount};
+
+    // Independent privileged/compressed/confined flags no longer exist on the
+    // fork account type; delegated/undelegating/ephemeral map to these modes.
+    let modes = [
+        AccountMode::Delegated,
+        AccountMode::Transient,
+        AccountMode::Ephemeral,
+    ];
+
+    for mode in modes {
+        let mut svm = LiteSVM::new();
+        let addr = Address::new_unique();
+        let owner = Address::new_unique();
+        let data = vec![1, 2, 3, 4];
+        let lamports = 1_000_000;
+        let account: AccountSharedData = AccountBuilder::default()
+            .lamports(lamports)
+            .data(data.clone())
+            .owner(owner)
+            .mode(mode)
+            .executable(false)
+            .build();
+        svm.set_account_no_checks(addr, account);
+
+        let restored = from_bytes(&to_bytes(&svm).unwrap()).unwrap();
+        let restored_account = restored
+            .accounts_db()
+            .get_account_ref(&addr)
+            .expect("account missing after restore");
+
+        assert_eq!(restored_account.mode(), mode, "mode {mode:?}");
+        assert_eq!(restored_account.lamports(), lamports);
+        assert_eq!(restored_account.data(), data.as_slice());
+        assert_eq!(*restored_account.owner(), owner);
+        assert!(!restored_account.executable());
+    }
 }
 
 #[test]

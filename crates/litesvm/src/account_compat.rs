@@ -10,8 +10,8 @@
 
 use {
     solana_account::{
-        Account as ForkAccount, AccountBuilder, AccountSharedData as ForkAccountSharedData,
-        OwnedAccount, ReadableAccount,
+        Account as ForkAccount, AccountBuilder, AccountMode,
+        AccountSharedData as ForkAccountSharedData, OwnedAccount, ReadableAccount,
     },
     solana_account_stock::{
         Account as StockAccount, AccountSharedData as StockAccountSharedData,
@@ -40,6 +40,17 @@ pub fn stock_to_fork(account: &StockAccountSharedData) -> ForkAccountSharedData 
         executable: StockReadableAccount::executable(account),
         rent_epoch: StockReadableAccount::rent_epoch(account),
     })
+}
+
+/// Convert a stock account back into a fork account and restore its lifecycle
+/// mode, which the stock type cannot represent.
+pub fn stock_to_fork_with_mode(
+    account: &StockAccountSharedData,
+    mode: AccountMode,
+) -> ForkAccountSharedData {
+    AccountBuilder::from(stock_to_fork(account))
+        .mode(mode)
+        .build()
 }
 
 /// Copies MagicBlock fork flags from `pre` onto `post` when the stock runtime
