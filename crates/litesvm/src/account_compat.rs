@@ -11,7 +11,7 @@
 use {
     solana_account::{
         Account as ForkAccount, AccountBuilder, AccountMode,
-        AccountSharedData as ForkAccountSharedData, OwnedAccount, ReadableAccount,
+        AccountSharedData as ForkAccountSharedData, ReadableAccount,
     },
     solana_account_stock::{
         Account as StockAccount, AccountSharedData as StockAccountSharedData,
@@ -54,13 +54,17 @@ pub fn stock_to_fork_with_mode(
 }
 
 /// Copies MagicBlock fork flags from `pre` onto `post` when the stock runtime
-/// round-trip dropped them.
+/// round-trip dropped them. Post-transaction lamports, data, owner, and
+/// executable are kept. An ephemeral account drained to zero lamports has
+/// ended its lifecycle, so the restored mode does not keep it alive.
 pub(crate) fn preserve_mode(pre: &ForkAccountSharedData, post: &mut ForkAccountSharedData) {
-    let new_post: OwnedAccount = AccountBuilder::default()
-        .lamports(pre.lamports())
-        .data(pre.data().to_vec())
-        .owner(*pre.owner())
-        .mode(pre.mode())
+    let mode =
+        if post.lamports() == 0 && pre.lamports() != 0 && pre.mode() == AccountMode::Ephemeral {
+            AccountMode::Closed
+        } else {
+            pre.mode()
+        };
+    *post = AccountBuilder::from(std::mem::take(post))
+        .mode(mode)
         .build();
-    *post = new_post.into();
 }

@@ -587,9 +587,8 @@ impl LiteSVM {
     }
 
     /// Sets the fee structure.
-    #[cfg_attr(feature = "persistence-internal", qualifiers(pub))]
     pub fn with_fee_structure(mut self, fee_structure: FeeStructure) -> Self {
-        self.set_fee_structure(fee_structure);
+        self.fee_structure = fee_structure;
         self
     }
 

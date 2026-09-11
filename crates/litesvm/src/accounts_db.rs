@@ -135,6 +135,8 @@ impl AccountsDb {
         } else {
             self.maybe_handle_sysvar_account(pubkey, &account)?;
         }
+        // Drop zero-lamport accounts before insert, including ephemeral accounts
+        // whose lifecycle ended (Closed). Live 0-lamport ephemeral accounts stay.
         if account.lamports() == 0 && account.mode() != AccountMode::Ephemeral {
             self.inner.remove(&pubkey);
         } else {
@@ -521,5 +523,104 @@ impl AddressLoader for &AccountsDb {
                     .map_err(into_address_loader_error)
             })
             .collect()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use {super::*, solana_account::AccountBuilder};
+
+    fn account(lamports: u64, mode: AccountMode, data: Vec<u8>) -> AccountSharedData {
+        AccountBuilder::default()
+            .lamports(lamports)
+            .data(data)
+            .owner(Address::default())
+            .mode(mode)
+            .build()
+    }
+
+    #[test]
+    fn zero_lamport_ephemeral_is_retained() {
+        let mut db = AccountsDb::default();
+        let address = Address::new_unique();
+        db.add_account(address, account(0, AccountMode::Ephemeral, vec![1, 2, 3]))
+            .unwrap();
+        let stored = db.get_account(&address).unwrap();
+        assert_eq!(stored.lamports(), 0);
+        assert_eq!(stored.mode(), AccountMode::Ephemeral);
+        assert_eq!(stored.data(), &[1, 2, 3]);
+    }
+
+    #[test]
+    fn zero_lamport_non_ephemeral_is_removed() {
+        let mut db = AccountsDb::default();
+        let address = Address::new_unique();
+        db.add_account_no_checks(address, account(1, AccountMode::Placeholder, vec![]));
+        db.add_account(address, account(0, AccountMode::Placeholder, vec![]))
+            .unwrap();
+        assert!(db.get_account(&address).is_none());
+    }
+
+    #[test]
+    fn nonzero_lamport_accounts_are_retained() {
+        let mut db = AccountsDb::default();
+        let ephemeral = Address::new_unique();
+        let placeholder = Address::new_unique();
+        db.add_account(ephemeral, account(10, AccountMode::Ephemeral, vec![9]))
+            .unwrap();
+        db.add_account(placeholder, account(10, AccountMode::Placeholder, vec![8]))
+            .unwrap();
+        assert_eq!(db.get_account(&ephemeral).unwrap().lamports(), 10);
+        assert_eq!(db.get_account(&placeholder).unwrap().lamports(), 10);
+    }
+
+    #[test]
+    fn sync_accounts_removes_drained_ephemeral() {
+        let mut db = AccountsDb::default();
+        let address = Address::new_unique();
+        db.add_account(address, account(50, AccountMode::Ephemeral, vec![1, 2, 3]))
+            .unwrap();
+        // Post-transaction accounts come back from the stock runtime with
+        // default mode; preserve_mode restores the pre-tx ephemeral flag.
+        db.sync_accounts(vec![(
+            address,
+            account(0, AccountMode::Placeholder, vec![]),
+        )])
+        .unwrap();
+        assert!(db.get_account(&address).is_none());
+    }
+
+    #[test]
+    fn sync_accounts_keeps_zero_lamport_ephemeral_that_was_already_empty() {
+        let mut db = AccountsDb::default();
+        let address = Address::new_unique();
+        db.add_account(address, account(0, AccountMode::Ephemeral, vec![1]))
+            .unwrap();
+        db.sync_accounts(vec![(
+            address,
+            account(0, AccountMode::Placeholder, vec![7, 8]),
+        )])
+        .unwrap();
+        let stored = db.get_account(&address).unwrap();
+        assert_eq!(stored.lamports(), 0);
+        assert_eq!(stored.mode(), AccountMode::Ephemeral);
+        assert_eq!(stored.data(), &[7, 8]);
+    }
+
+    #[test]
+    fn sync_accounts_preserves_post_state_for_funded_ephemeral() {
+        let mut db = AccountsDb::default();
+        let address = Address::new_unique();
+        db.add_account(address, account(50, AccountMode::Ephemeral, vec![1]))
+            .unwrap();
+        db.sync_accounts(vec![(
+            address,
+            account(40, AccountMode::Placeholder, vec![2, 3]),
+        )])
+        .unwrap();
+        let stored = db.get_account(&address).unwrap();
+        assert_eq!(stored.lamports(), 40);
+        assert_eq!(stored.mode(), AccountMode::Ephemeral);
+        assert_eq!(stored.data(), &[2, 3]);
     }
 }
