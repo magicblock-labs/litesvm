@@ -137,7 +137,7 @@ impl AccountsDb {
         }
         // Drop zero-lamport accounts before insert, including ephemeral accounts
         // whose lifecycle ended (Closed). Live 0-lamport ephemeral accounts stay.
-        if account.lamports() == 0 && account.mode() != AccountMode::Ephemeral {
+        if account.lamports() == 0 && !account.is(AccountMode::Ephemeral) {
             self.inner.remove(&pubkey);
         } else {
             self.add_account_no_checks(pubkey, account);
