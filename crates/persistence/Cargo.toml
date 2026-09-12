@@ -1,5 +1,5 @@
 [package]
-name = "litesvm-persistence"
+name = "magicblock-litesvm-persistence"
 description = "Save and load LiteSVM state snapshots"
 version.workspace = true
 edition.workspace = true

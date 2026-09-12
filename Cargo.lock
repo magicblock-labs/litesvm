@@ -1920,8 +1920,8 @@ version = "1.4.1"
 dependencies = [
  "agave-feature-set",
  "bv",
- "litesvm-persistence",
  "magicblock-litesvm",
+ "magicblock-litesvm-persistence",
  "napi",
  "napi-build",
  "napi-derive",
@@ -1943,34 +1943,6 @@ dependencies = [
  "solana-transaction",
  "solana-transaction-context",
  "solana-transaction-error",
- "wincode",
-]
-
-[[package]]
-name = "litesvm-persistence"
-version = "0.16.0"
-dependencies = [
- "agave-feature-set",
- "magicblock-litesvm",
- "solana-account 4.3.1",
- "solana-account 4.3.2",
- "solana-address 2.6.1",
- "solana-clock",
- "solana-compute-budget",
- "solana-fee-structure",
- "solana-hash",
- "solana-instruction",
- "solana-keypair",
- "solana-message",
- "solana-native-token",
- "solana-signature",
- "solana-signer",
- "solana-system-interface",
- "solana-transaction",
- "solana-transaction-context",
- "solana-transaction-error",
- "tempfile",
- "thiserror 2.0.20",
  "wincode",
 ]
 
@@ -2088,6 +2060,34 @@ dependencies = [
  "spl-associated-token-account-interface",
  "spl-token-interface",
  "test-log",
+ "thiserror 2.0.20",
+ "wincode",
+]
+
+[[package]]
+name = "magicblock-litesvm-persistence"
+version = "0.16.0"
+dependencies = [
+ "agave-feature-set",
+ "magicblock-litesvm",
+ "solana-account 4.3.1",
+ "solana-account 4.3.2",
+ "solana-address 2.6.1",
+ "solana-clock",
+ "solana-compute-budget",
+ "solana-fee-structure",
+ "solana-hash",
+ "solana-instruction",
+ "solana-keypair",
+ "solana-message",
+ "solana-native-token",
+ "solana-signature",
+ "solana-signer",
+ "solana-system-interface",
+ "solana-transaction",
+ "solana-transaction-context",
+ "solana-transaction-error",
+ "tempfile",
  "thiserror 2.0.20",
  "wincode",
 ]
