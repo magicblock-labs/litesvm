@@ -7,6 +7,10 @@ license.workspace = true
 repository.workspace = true
 rust-version.workspace = true
 
+[lib]
+name = "litesvm_persistence"
+doctest = false
+
 [dependencies]
 litesvm = { workspace = true, features = ["persistence-internal"] }
 solana-account = { workspace = true, features = ["wincode"] }
@@ -36,6 +40,3 @@ tempfile.workspace = true
 
 [lints]
 workspace = true
-
-[lib]
-doctest = false
