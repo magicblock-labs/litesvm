@@ -29,6 +29,7 @@ use {
     },
     solana_sdk_ids::{
         bpf_loader, bpf_loader_deprecated, bpf_loader_upgradeable, loader_v4, native_loader,
+        system_program,
         sysvar::{
             clock::ID as CLOCK_ID, epoch_rewards::ID as EPOCH_REWARDS_ID,
             epoch_schedule::ID as EPOCH_SCHEDULE_ID, last_restart_slot::ID as LAST_RESTART_SLOT_ID,
@@ -135,9 +136,13 @@ impl AccountsDb {
         } else {
             self.maybe_handle_sysvar_account(pubkey, &account)?;
         }
-        // Drop zero-lamport accounts before insert, including ephemeral accounts
-        // whose lifecycle ended (Closed). Live 0-lamport ephemeral accounts stay.
-        if account.lamports() == 0 && !account.is(AccountMode::Ephemeral) {
+        // Drop zero-lamport accounts before insert, except live ephemeral
+        // accounts and newly created 0-lamport program-owned accounts (Magic
+        // create writes data at 0 lamports; MagicsVM tags Ephemeral after commit).
+        if account.lamports() == 0
+            && !account.is(AccountMode::Ephemeral)
+            && (account.owner() == &system_program::ID || account.data().is_empty())
+        {
             self.inner.remove(&pubkey);
         } else {
             self.add_account_no_checks(pubkey, account);
@@ -575,7 +580,7 @@ mod tests {
     }
 
     #[test]
-    fn sync_accounts_removes_drained_ephemeral() {
+    fn sync_accounts_keeps_drained_ephemeral() {
         let mut db = AccountsDb::default();
         let address = Address::new_unique();
         db.add_account(address, account(50, AccountMode::Ephemeral, vec![1, 2, 3]))
@@ -584,10 +589,49 @@ mod tests {
         // default mode; preserve_mode restores the pre-tx ephemeral flag.
         db.sync_accounts(vec![(
             address,
-            account(0, AccountMode::Placeholder, vec![]),
+            account(0, AccountMode::Placeholder, vec![1, 2, 3]),
         )])
         .unwrap();
-        assert!(db.get_account(&address).is_none());
+        let stored = db.get_account(&address).unwrap();
+        assert_eq!(stored.lamports(), 0);
+        assert_eq!(stored.mode(), AccountMode::Ephemeral);
+        assert_eq!(stored.data(), &[1, 2, 3]);
+    }
+
+    #[test]
+    fn add_account_keeps_zero_lamport_program_owned_data() {
+        let mut db = AccountsDb::default();
+        let address = Address::new_unique();
+        let owner = Address::new_unique();
+        let account = AccountBuilder::default()
+            .lamports(0)
+            .data(vec![9, 9])
+            .owner(owner)
+            .mode(AccountMode::Placeholder)
+            .build();
+        db.add_account(address, account).unwrap();
+        let stored = db.get_account(&address).unwrap();
+        assert_eq!(stored.lamports(), 0);
+        assert_eq!(stored.owner(), &owner);
+        assert_eq!(stored.data(), &[9, 9]);
+    }
+
+    #[test]
+    fn sync_accounts_keeps_new_zero_lamport_program_account() {
+        let mut db = AccountsDb::default();
+        let address = Address::new_unique();
+        let owner = Address::new_unique();
+        let post = AccountBuilder::default()
+            .lamports(0)
+            .data(vec![0xab, 0x2e])
+            .owner(owner)
+            .mode(AccountMode::Placeholder)
+            .build();
+        db.sync_accounts(vec![(address, post)]).unwrap();
+        let stored = db.get_account(&address).unwrap();
+        assert_eq!(stored.lamports(), 0);
+        assert_eq!(stored.owner(), &owner);
+        assert_eq!(stored.data(), &[0xab, 0x2e]);
     }
 
     #[test]

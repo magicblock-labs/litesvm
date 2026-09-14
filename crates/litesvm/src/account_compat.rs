@@ -55,16 +55,10 @@ pub fn stock_to_fork_with_mode(
 
 /// Copies MagicBlock fork flags from `pre` onto `post` when the stock runtime
 /// round-trip dropped them. Post-transaction lamports, data, owner, and
-/// executable are kept. An ephemeral account drained to zero lamports has
-/// ended its lifecycle, so the restored mode does not keep it alive.
+/// executable are kept. Live ephemeral accounts stay ephemeral even when a
+/// transaction returns them to zero lamports (create → credit → debit).
 pub(crate) fn preserve_mode(pre: &ForkAccountSharedData, post: &mut ForkAccountSharedData) {
-    let mode =
-        if post.lamports() == 0 && pre.lamports() != 0 && pre.mode() == AccountMode::Ephemeral {
-            AccountMode::Closed
-        } else {
-            pre.mode()
-        };
     *post = AccountBuilder::from(std::mem::take(post))
-        .mode(mode)
+        .mode(pre.mode())
         .build();
 }
