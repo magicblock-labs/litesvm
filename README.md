@@ -20,8 +20,10 @@
 ### 🔧 Installation
 
 ```sh
-cargo add --dev litesvm
+cargo add --dev magicblock-litesvm
 ```
+
+The rustc crate name remains `litesvm`, so examples keep `use litesvm::LiteSVM`.
 
 ### 🤖 Minimal Example
 
@@ -71,22 +73,22 @@ Beyond simple transfers, `litesvm` supports:
 
 ## Additional Crates
 
-### `litesvm-token`
+### `magicblock-litesvm-token`
 
-[`litesvm-token`](https://crates.io/crates/litesvm-token) provides ergonomic helpers for testing SPL Token programs. Rather than hand-rolling the instructions for creating mints, token accounts, and ATAs, it exposes a builder-style API covering the full range of token operations: `CreateMint`, `CreateAssociatedTokenAccount`, `MintTo`, `Transfer`, `Burn`, `Approve`, and their checked variants, plus authority management (`SetAuthority`, `FreezeAccount`, `ThawAccount`).
+[`magicblock-litesvm-token`](https://crates.io/crates/magicblock-litesvm-token) provides ergonomic helpers for testing SPL Token programs. Rather than hand-rolling the instructions for creating mints, token accounts, and ATAs, it exposes a builder-style API covering the full range of token operations: `CreateMint`, `CreateAssociatedTokenAccount`, `MintTo`, `Transfer`, `Burn`, `Approve`, and their checked variants, plus authority management (`SetAuthority`, `FreezeAccount`, `ThawAccount`). Import it as `litesvm_token`.
 
 ```sh
-cargo add --dev litesvm-token
+cargo add --dev magicblock-litesvm-token
 ```
 
 See the [SPL token testing guide](https://www.litesvm.com/docs/additional-crates/testing-with-spl-tokens) for a full walkthrough.
 
-### `litesvm-loader`
+### `magicblock-litesvm-loader`
 
-[`litesvm-loader`](https://crates.io/crates/litesvm-loader) provides helpers for working with Solana's upgradeable BPF loader in LiteSVM. It wraps the repetitive deployment flow for upgradeable programs by creating the buffer account, writing program bytes in chunks, deploying the program, and exposing a helper for changing the upgrade authority.
+[`magicblock-litesvm-loader`](https://crates.io/crates/magicblock-litesvm-loader) provides helpers for working with Solana's upgradeable BPF loader in LiteSVM. It wraps the repetitive deployment flow for upgradeable programs by creating the buffer account, writing program bytes in chunks, deploying the program, and exposing a helper for changing the upgrade authority. Import it as `litesvm_loader`.
 
 ```sh
-cargo add --dev litesvm-loader
+cargo add --dev magicblock-litesvm-loader
 ```
 
 See the [loader API docs](https://www.litesvm.com/docs/additional-crates/testing-with-litesvm-loader) for the available helpers.
@@ -134,6 +136,20 @@ See the [anchor-litesvm testing guide](https://www.litesvm.com/docs/additional-c
 
 The tests in this repo use some test programs you need to build first (Solana CLI >= 1.18.8 required):
 
-```cd crates/litesvm/test_programs && cargo build-sbf```
+```sh
+cd crates/litesvm/test_programs && cargo build-sbf
+```
+
+That writes `.so` files under `test_programs/target/deploy/`. Copy the fixtures the crate docs and Node tests load:
+
+```sh
+mkdir -p crates/litesvm/program_bytes crates/node-litesvm/program_bytes
+cp crates/litesvm/test_programs/target/deploy/litesvm_clock_example.so \
+   crates/litesvm/test_programs/target/deploy/spl_example_logging.so \
+   crates/litesvm/program_bytes/
+cp crates/litesvm/program_bytes/*.so \
+   crates/litesvm/test_programs/target/deploy/counter.so \
+   crates/node-litesvm/program_bytes/
+```
 
 Then just run `cargo test`.

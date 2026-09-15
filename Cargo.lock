@@ -1885,36 +1885,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32a66949e030da00e8c7d4434b251670a91556f4144941d37452769c25d58a53"
 
 [[package]]
-name = "litesvm-cpi-tree"
-version = "0.16.0"
-dependencies = [
- "magicblock-litesvm",
- "solana-account 4.3.1",
- "solana-address 2.6.1",
- "solana-clock",
- "solana-keypair",
- "solana-message",
- "solana-signer",
- "solana-transaction",
-]
-
-[[package]]
-name = "litesvm-loader"
-version = "0.16.0"
-dependencies = [
- "agave-feature-set",
- "magicblock-litesvm",
- "solana-address 2.6.1",
- "solana-instruction",
- "solana-keypair",
- "solana-loader-v3-interface 8.0.1",
- "solana-message",
- "solana-signer",
- "solana-transaction",
- "test-log",
-]
-
-[[package]]
 name = "litesvm-node"
 version = "1.4.1"
 dependencies = [
@@ -1944,25 +1914,6 @@ dependencies = [
  "solana-transaction-context",
  "solana-transaction-error",
  "wincode",
-]
-
-[[package]]
-name = "litesvm-token"
-version = "0.16.0"
-dependencies = [
- "magicblock-litesvm",
- "smallvec",
- "solana-account 4.3.1",
- "solana-address 2.6.1",
- "solana-keypair",
- "solana-program-pack",
- "solana-signer",
- "solana-system-interface",
- "solana-transaction",
- "solana-transaction-error",
- "spl-associated-token-account-interface",
- "spl-token-2022-interface",
- "spl-token-interface",
 ]
 
 [[package]]
@@ -2065,6 +2016,36 @@ dependencies = [
 ]
 
 [[package]]
+name = "magicblock-litesvm-cpi-tree"
+version = "0.16.0"
+dependencies = [
+ "magicblock-litesvm",
+ "solana-account 4.3.1",
+ "solana-address 2.6.1",
+ "solana-clock",
+ "solana-keypair",
+ "solana-message",
+ "solana-signer",
+ "solana-transaction",
+]
+
+[[package]]
+name = "magicblock-litesvm-loader"
+version = "0.16.0"
+dependencies = [
+ "agave-feature-set",
+ "magicblock-litesvm",
+ "solana-address 2.6.1",
+ "solana-instruction",
+ "solana-keypair",
+ "solana-loader-v3-interface 8.0.1",
+ "solana-message",
+ "solana-signer",
+ "solana-transaction",
+ "test-log",
+]
+
+[[package]]
 name = "magicblock-litesvm-persistence"
 version = "0.16.0"
 dependencies = [
@@ -2090,6 +2071,25 @@ dependencies = [
  "tempfile",
  "thiserror 2.0.20",
  "wincode",
+]
+
+[[package]]
+name = "magicblock-litesvm-token"
+version = "0.16.0"
+dependencies = [
+ "magicblock-litesvm",
+ "smallvec",
+ "solana-account 4.3.1",
+ "solana-address 2.6.1",
+ "solana-keypair",
+ "solana-program-pack",
+ "solana-signer",
+ "solana-system-interface",
+ "solana-transaction",
+ "solana-transaction-error",
+ "spl-associated-token-account-interface",
+ "spl-token-2022-interface",
+ "spl-token-interface",
 ]
 
 [[package]]

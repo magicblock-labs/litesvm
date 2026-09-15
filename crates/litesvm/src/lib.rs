@@ -61,8 +61,8 @@ we want to test our own programs.
 
 To add a compiled program to our tests we can use [`.add_program_from_file`](LiteSVM::add_program_from_file).
 
-Here's an example using a [simple program](https://github.com/solana-labs/solana-program-library/tree/bd216c8103cd8eb9f5f32e742973e7afb52f3b81/examples/rust/logging)
-from the Solana Program Library that just does some logging:
+Here's an example using a simple logging program (built from
+`crates/litesvm/test_programs/logging` via `cargo build-sbf`):
 
 ```rust
 use {
@@ -89,7 +89,7 @@ fn test_logging() {
     };
     let mut svm = LiteSVM::new();
     let payer = Keypair::new();
-    let bytes = include_bytes!("../../node-litesvm/program_bytes/spl_example_logging.so");
+    let bytes = include_bytes!("../program_bytes/spl_example_logging.so");
     svm.add_program(program_id, bytes);
     svm.airdrop(&payer.pubkey(), 1_000_000_000).unwrap();
     let blockhash = svm.latest_blockhash();
@@ -128,7 +128,7 @@ use {
 fn test_set_clock() {
     let program_id = Address::new_unique();
     let mut svm = LiteSVM::new();
-    let bytes = include_bytes!("../../node-litesvm/program_bytes/litesvm_clock_example.so");
+    let bytes = include_bytes!("../program_bytes/litesvm_clock_example.so");
     svm.add_program(program_id, bytes);
     let payer = Keypair::new();
     let payer_address = payer.pubkey();
