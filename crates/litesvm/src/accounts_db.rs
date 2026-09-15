@@ -29,7 +29,6 @@ use {
     },
     solana_sdk_ids::{
         bpf_loader, bpf_loader_deprecated, bpf_loader_upgradeable, loader_v4, native_loader,
-        system_program,
         sysvar::{
             clock::ID as CLOCK_ID, epoch_rewards::ID as EPOCH_REWARDS_ID,
             epoch_schedule::ID as EPOCH_SCHEDULE_ID, last_restart_slot::ID as LAST_RESTART_SLOT_ID,
@@ -136,13 +135,10 @@ impl AccountsDb {
         } else {
             self.maybe_handle_sysvar_account(pubkey, &account)?;
         }
-        // Drop zero-lamport accounts before insert, except live ephemeral
-        // accounts and newly created 0-lamport program-owned accounts (Magic
-        // create writes data at 0 lamports; MagicsVM tags Ephemeral after commit).
-        if account.lamports() == 0
-            && !account.is(AccountMode::Ephemeral)
-            && (account.owner() == &system_program::ID || account.data().is_empty())
-        {
+        // Drop zero-lamport accounts before insert. Live ephemeral accounts
+        // are the only exemption: MagicsVM must keep them visible after a
+        // create → credit → debit round-trip that returns to 0 lamports.
+        if account.lamports() == 0 && !account.is(AccountMode::Ephemeral) {
             self.inner.remove(&pubkey);
         } else {
             self.add_account_no_checks(pubkey, account);
@@ -599,7 +595,7 @@ mod tests {
     }
 
     #[test]
-    fn add_account_keeps_zero_lamport_program_owned_data() {
+    fn add_account_drops_zero_lamport_program_owned_data() {
         let mut db = AccountsDb::default();
         let address = Address::new_unique();
         let owner = Address::new_unique();
@@ -610,14 +606,11 @@ mod tests {
             .mode(AccountMode::Placeholder)
             .build();
         db.add_account(address, account).unwrap();
-        let stored = db.get_account(&address).unwrap();
-        assert_eq!(stored.lamports(), 0);
-        assert_eq!(stored.owner(), &owner);
-        assert_eq!(stored.data(), &[9, 9]);
+        assert!(db.get_account(&address).is_none());
     }
 
     #[test]
-    fn sync_accounts_keeps_new_zero_lamport_program_account() {
+    fn sync_accounts_drops_new_zero_lamport_program_account() {
         let mut db = AccountsDb::default();
         let address = Address::new_unique();
         let owner = Address::new_unique();
@@ -628,10 +621,7 @@ mod tests {
             .mode(AccountMode::Placeholder)
             .build();
         db.sync_accounts(vec![(address, post)]).unwrap();
-        let stored = db.get_account(&address).unwrap();
-        assert_eq!(stored.lamports(), 0);
-        assert_eq!(stored.owner(), &owner);
-        assert_eq!(stored.data(), &[0xab, 0x2e]);
+        assert!(db.get_account(&address).is_none());
     }
 
     #[test]
