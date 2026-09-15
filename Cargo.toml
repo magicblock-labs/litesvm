@@ -6,7 +6,7 @@ members = ["crates/*"]
 version = "0.16.0"
 edition = "2021"
 license = "Apache-2.0"
-repository = "https://github.com/LiteSVM/litesvm"
+repository = "https://github.com/magicblock-labs/litesvm"
 rust-version = "1.89.0"
 
 [workspace.dependencies]
@@ -23,8 +23,8 @@ hex = "0.4.3"
 indexmap = "2.14"
 itertools = "0.15"
 libsecp256k1 = "0.7.2"
-litesvm = { path = "crates/litesvm", version = "0.16" }
-litesvm-persistence = { path = "crates/persistence", version = "0.16" }
+litesvm = { package = "magicblock-litesvm", path = "crates/litesvm", version = "0.16" }
+litesvm-persistence = { package = "magicblock-litesvm-persistence", path = "crates/persistence", version = "0.16" }
 log = "0.4"
 napi = { version = "3.12.2", default-features = false }
 napi-build = "2.4.1"
@@ -34,7 +34,8 @@ qualifier_attr = "0.2.2"
 serde = "1.0.229"
 sha2 = "0.10.9"
 smallvec = "1.15"
-solana-account = "4.3.0"
+solana-account = { package = "solana-account", git = "https://github.com/magicblock-labs/magicblock-engine.git", rev = "ace00f939" }
+solana-account-stock = { version = "4.3.1", package = "solana-account" }
 solana-address = "~2.6.1"
 solana-address-lookup-table-interface = "~3.1.0"
 solana-builtins = "4.2.1"

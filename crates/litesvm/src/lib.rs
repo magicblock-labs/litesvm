@@ -345,6 +345,7 @@ use {
     agave_reserved_account_keys::ReservedAccountKeys,
     log::error,
     solana_account::{Account, AccountSharedData, ReadableAccount, WritableAccount},
+    solana_account_stock::ReadableAccount as StockReadableAccount,
     solana_address::Address,
     solana_builtins::BUILTINS,
     solana_clock::Clock,
@@ -409,7 +410,8 @@ use {
 pub mod error;
 pub mod types;
 
-mod accounts_db;
+pub mod account_compat;
+pub mod accounts_db;
 mod callback;
 #[cfg(feature = "sbpf-debugger")]
 pub mod debugger;
@@ -441,7 +443,7 @@ pub const MAINNET_DEFAULT_SLOT: u64 = {
 
 #[derive(Clone)]
 pub struct LiteSVM {
-    accounts: AccountsDb,
+    pub accounts: AccountsDb,
     airdrop_kp: [u8; 64],
     feature_set: FeatureSet,
     reserved_account_keys: ReservedAccountKeys,
@@ -563,8 +565,7 @@ impl LiteSVM {
         self
     }
 
-    #[cfg_attr(feature = "nodejs-internal", qualifiers(pub))]
-    fn set_sigverify(&mut self, sigverify: bool) {
+    pub fn set_sigverify(&mut self, sigverify: bool) {
         self.sigverify = sigverify;
     }
 
@@ -582,6 +583,12 @@ impl LiteSVM {
     /// Enables or disables the blockhash check.
     pub fn with_blockhash_check(mut self, check: bool) -> Self {
         self.set_blockhash_check(check);
+        self
+    }
+
+    /// Sets the fee structure.
+    pub fn with_fee_structure(mut self, fee_structure: FeeStructure) -> Self {
+        self.fee_structure = fee_structure;
         self
     }
 
@@ -689,7 +696,8 @@ impl LiteSVM {
             };
             let lamports = self.minimum_balance_for_rent_exemption(Feature::size_of());
             let account = feature_gate::create_account(&feature_account, lamports);
-            self.accounts.add_account_no_checks(*feature_id, account);
+            self.accounts
+                .add_account_no_checks(*feature_id, account_compat::stock_to_fork(&account));
         }
     }
 
@@ -707,7 +715,7 @@ impl LiteSVM {
 
     #[cfg_attr(feature = "nodejs-internal", qualifiers(pub))]
     fn set_builtins(&mut self) {
-        let (lamports, rent_epoch) = solana_account::DUMMY_INHERITABLE_ACCOUNT_FIELDS;
+        let (lamports, rent_epoch) = solana_account_stock::DUMMY_INHERITABLE_ACCOUNT_FIELDS;
         BUILTINS.iter().for_each(|builtint| {
             if builtint
                 .enable_feature_id
@@ -1201,6 +1209,10 @@ impl LiteSVM {
         accounts: Vec<(Address, AccountSharedData)>,
         number_of_top_level_instructions: usize,
     ) -> TransactionContext<'_> {
+        let accounts = accounts
+            .into_iter()
+            .map(|(key, account)| (key, account_compat::fork_to_stock(&account)))
+            .collect();
         TransactionContext::new(
             accounts,
             self.accounts
@@ -1850,7 +1862,7 @@ impl LiteSVM {
             .and_then(|nonce_address| self.accounts.get_account_ref(nonce_address))
             .and_then(|nonce_account| {
                 solana_nonce_account::verify_nonce_account(
-                    nonce_account,
+                    &account_compat::fork_to_stock(nonce_account),
                     message.recent_blockhash(),
                 )
             })
@@ -2085,7 +2097,10 @@ fn execute_tx_helper(
     let post_accounts = accounts
         .into_iter()
         .enumerate()
-        .filter_map(|(idx, pair)| msg.is_writable(idx).then_some(pair))
+        .filter_map(|(idx, (key, account))| {
+            msg.is_writable(idx)
+                .then(|| (key, account_compat::stock_to_fork(&account)))
+        })
         .collect();
     (signature, return_data, inner_instructions, post_accounts)
 }
@@ -2167,7 +2182,10 @@ fn validate_fee_payer(
         error!("Payer account {payer_address} not found.");
         return Err(TransactionError::AccountNotFound);
     }
-    let system_account_kind = get_system_account_kind(payer_account).ok_or_else(|| {
+    let system_account_kind = get_system_account_kind(&account_compat::fork_to_stock(
+        payer_account,
+    ))
+    .ok_or_else(|| {
         error!("Payer account {payer_address} is not a system account");
         TransactionError::InvalidAccountForFee
     })?;

@@ -1,5 +1,5 @@
 [package]
-name = "litesvm-persistence"
+name = "magicblock-litesvm-persistence"
 description = "Save and load LiteSVM state snapshots"
 version.workspace = true
 edition.workspace = true
@@ -7,9 +7,14 @@ license.workspace = true
 repository.workspace = true
 rust-version.workspace = true
 
+[lib]
+name = "litesvm_persistence"
+doctest = false
+
 [dependencies]
 litesvm = { workspace = true, features = ["persistence-internal"] }
 solana-account = { workspace = true, features = ["wincode"] }
+solana-account-stock = { workspace = true, features = ["wincode"] }
 solana-address.workspace = true
 solana-compute-budget.workspace = true
 solana-fee-structure.workspace = true
@@ -35,6 +40,3 @@ tempfile.workspace = true
 
 [lints]
 workspace = true
-
-[lib]
-doctest = false
