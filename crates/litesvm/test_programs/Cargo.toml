@@ -6,6 +6,7 @@ members = [
     "custom-syscall",
     "cpi-maker",
     "epoch-stake",
+    "logging",
 ]
 resolver = "2"
 

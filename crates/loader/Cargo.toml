@@ -1,5 +1,5 @@
 [package]
-name = "litesvm-loader"
+name = "magicblock-litesvm-loader"
 description = "Helpers for working with bpf_loader and LiteSVM"
 version.workspace = true
 edition.workspace = true
@@ -25,5 +25,6 @@ test-log.workspace = true
 workspace = true
 
 [lib]
+name = "litesvm_loader"
 test = false
 doctest = false

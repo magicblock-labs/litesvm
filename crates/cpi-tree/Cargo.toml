@@ -1,5 +1,5 @@
 [package]
-name = "litesvm-cpi-tree"
+name = "magicblock-litesvm-cpi-tree"
 description = "Parse and render Solana transaction logs as a CPI call tree"
 license.workspace = true
 version.workspace = true
@@ -27,4 +27,5 @@ solana-transaction = { workspace = true, features = ["verify"] }
 workspace = true
 
 [lib]
+name = "litesvm_cpi_tree"
 doctest = false

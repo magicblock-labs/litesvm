@@ -762,6 +762,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "spl-example-logging"
+version = "0.0.0"
+dependencies = [
+ "solana-account-info",
+ "solana-msg",
+ "solana-program-entrypoint",
+ "solana-program-error",
+ "solana-pubkey",
+]
+
+[[package]]
 name = "strsim"
 version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"

@@ -24,7 +24,10 @@ indexmap = "2.14"
 itertools = "0.15"
 libsecp256k1 = "0.7.2"
 litesvm = { package = "magicblock-litesvm", path = "crates/litesvm", version = "0.16" }
+litesvm-cpi-tree = { package = "magicblock-litesvm-cpi-tree", path = "crates/cpi-tree", version = "0.16" }
+litesvm-loader = { package = "magicblock-litesvm-loader", path = "crates/loader", version = "0.16" }
 litesvm-persistence = { package = "magicblock-litesvm-persistence", path = "crates/persistence", version = "0.16" }
+litesvm-token = { package = "magicblock-litesvm-token", path = "crates/token", version = "0.16" }
 log = "0.4"
 napi = { version = "3.12.2", default-features = false }
 napi-build = "2.4.1"
